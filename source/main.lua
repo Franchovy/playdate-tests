@@ -5,7 +5,16 @@ import "CoreLibs/timer"
 
 local gfx <const> = playdate.graphics
 
+local playerSpeed = 4
+
 local playerSprite = nil
+
+local playTimer = nil
+local playTime = 30 * 1000
+
+local function resetTimer()
+    playTimer = playdate.timer.new(playTime, playTime, 0, playdate.easingFunctions.linear)
+end
 
 local function initialize()
     local playerImage = gfx.image.new("images/player")
@@ -21,13 +30,27 @@ local function initialize()
             gfx.clearClipRect()
         end
     )
+
+    resetTimer()
 end
 
 initialize()
 
 function playdate.update()
-    -- Main loop for the game
-    --gfx.clear()
-    --gfx.drawText("Hello World", 20, 20)
+    if playdate.buttonIsPressed(playdate.kButtonUp) then
+        playerSprite:moveBy(0, -playerSpeed)
+    end
+    if playdate.buttonIsPressed(playdate.kButtonDown) then
+        playerSprite:moveBy(0, playerSpeed)
+    end
+    if playdate.buttonIsPressed(playdate.kButtonLeft) then
+        playerSprite:moveBy(-playerSpeed, 0)
+    end
+    if playdate.buttonIsPressed(playdate.kButtonRight) then
+        playerSprite:moveBy(playerSpeed, 0)
+    end
+
     gfx.sprite.update()
+
+    --gfx.drawText("Time: " .. playTimer.value / 1000)
 end
