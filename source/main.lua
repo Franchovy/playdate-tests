@@ -37,6 +37,14 @@ end
 initialize()
 
 function playdate.update()
+    if playTimer.value == 0 then
+        if playdate.buttonIsPressed(playdate.kButtonA) then
+            resetTimer()
+        end
+
+        return
+    end
+
     if playdate.buttonIsPressed(playdate.kButtonUp) then
         playerSprite:moveBy(0, -playerSpeed)
     end
@@ -50,7 +58,9 @@ function playdate.update()
         playerSprite:moveBy(playerSpeed, 0)
     end
 
+    playdate.timer.updateTimers()
+
     gfx.sprite.update()
 
-    --gfx.drawText("Time: " .. playTimer.value / 1000)
+    gfx.drawText("Time: " .. math.ceil(playTimer.value / 1000), 5, 5)
 end
