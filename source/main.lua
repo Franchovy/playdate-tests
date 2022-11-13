@@ -51,8 +51,20 @@ local function initialize()
     coinSprite:add()
     moveCoin()
 
-    -- Setup background
 
+    -- Create floor sprite
+    local floorImage = gfx.image.new(400, 20)
+    -- PUSH CONTEXT
+    gfx.pushContext(floorImage)
+    gfx.fillRect(0, 0, floorImage:getSize())
+    gfx.popContext()
+    -- Create floor sprite
+    local floorSprite = gfx.sprite.new(floorImage)
+    floorSprite:moveTo(200, 230)
+    floorSprite:add()
+
+
+    -- Setup background
     local backgroundImage = gfx.image.new("images/background")
     -- Background drawing callback - draws background behind sprites
     gfx.sprite.setBackgroundDrawingCallback(
@@ -69,6 +81,8 @@ end
 
 -- Run initialize method
 initialize()
+
+local gravityAcceleration = 3.5
 
 -- Main game loop
 function playdate.update()
