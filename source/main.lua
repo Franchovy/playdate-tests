@@ -12,6 +12,7 @@ local playerSpeed = 4
 -- Sprites
 local playerSprite = nil
 local coinSprite = nil
+local floorSprite = nil
 
 -- Game Timer
 local playTimer = nil
@@ -59,7 +60,8 @@ local function initialize()
     gfx.fillRect(0, 0, floorImage:getSize())
     gfx.popContext()
     -- Create floor sprite
-    local floorSprite = gfx.sprite.new(floorImage)
+    floorSprite = gfx.sprite.new(floorImage)
+    floorSprite:setCollideRect(0, 0, floorSprite:getSize())
     floorSprite:moveTo(200, 230)
     floorSprite:add()
 
@@ -83,6 +85,9 @@ end
 initialize()
 
 local gravityAcceleration = 3.5
+local currentVerticalSpeed = 0
+local playerInitialJumpSpeed = 15
+local hasJumped = false
 
 -- Main game loop
 function playdate.update()
@@ -100,18 +105,36 @@ function playdate.update()
     end
 
     -- Key press detection for player movement
-    if playdate.buttonIsPressed(playdate.kButtonUp) then
-        playerSprite:moveBy(0, -playerSpeed)
-    end
-    if playdate.buttonIsPressed(playdate.kButtonDown) then
-        playerSprite:moveBy(0, playerSpeed)
-    end
+    hasJumped = playdate.buttonIsPressed(playdate.kButtonA)
+
     if playdate.buttonIsPressed(playdate.kButtonLeft) then
         playerSprite:moveBy(-playerSpeed, 0)
     end
     if playdate.buttonIsPressed(playdate.kButtonRight) then
         playerSprite:moveBy(playerSpeed, 0)
     end
+
+    -- Detect if sprite is currently touching floor
+    local isTouchingFloor = playerSprite.y + playerSprite.height >= floorSprite.y - 1
+
+    -- Adapt vertical speed to whether sprite is jumping or touching floor
+    if isTouchingFloor then
+        if hasJumped then
+            currentVerticalSpeed = -playerInitialJumpSpeed
+        else
+            currentVerticalSpeed = 0
+        end
+    elseif not hasJumped then
+        currentVerticalSpeed += gravityAcceleration
+    end
+
+    -- Move sprite using adapted speed
+    local actualX, actualY, _, _ = playerSprite:moveWithCollisions(
+        playerSprite.x,
+        playerSprite.y + currentVerticalSpeed
+    )
+    playerSprite:moveTo(actualX, actualY)
+
 
     -- Basic collision detection by returning list of overlapping sprites
     local collisions = coinSprite:overlappingSprites()
