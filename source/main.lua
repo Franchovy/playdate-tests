@@ -14,6 +14,9 @@ local playerSprite = nil
 local coinSprite = nil
 local floorSprite = nil
 
+-- Collision Groups
+local objectsCollisionGroup = 2
+
 -- Game Timer
 local playTimer = nil
 local playTime = 30 * 1000
@@ -43,6 +46,12 @@ local function initialize()
     playerSprite = gfx.sprite.new(playerImage)
     playerSprite:moveTo(200, 120)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
+    playerSprite.collisionResponse = function(_, other)
+        if other == coinSprite then
+            return gfx.sprite.kCollisionTypeOverlap
+        end
+        return gfx.sprite.kCollisionTypeFreeze
+    end
     playerSprite:add()
 
     -- Create coin sprite
@@ -104,6 +113,17 @@ function playdate.update()
         return
     end
 
+
+    -- Check if player is touching coin
+    local collisions = playerSprite:overlappingSprites()
+    for _, v in ipairs(collisions) do
+        if v == coinSprite then
+            moveCoin()
+            score += scorePerCoin
+        end
+    end
+
+
     -- Key press detection for player movement
     hasJumped = playdate.buttonIsPressed(playdate.kButtonA)
 
@@ -135,13 +155,6 @@ function playdate.update()
     )
     playerSprite:moveTo(actualX, actualY)
 
-
-    -- Basic collision detection by returning list of overlapping sprites
-    local collisions = coinSprite:overlappingSprites()
-    if #collisions >= 1 then
-        moveCoin()
-        score += scorePerCoin
-    end
 
     --Update methods
 
