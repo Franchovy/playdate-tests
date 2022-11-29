@@ -3,6 +3,8 @@ import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/timer"
 
+import "coin"
+
 -- Libraries
 local gfx <const> = playdate.graphics
 
@@ -11,11 +13,8 @@ local playerSpeed = 4
 
 -- Sprites
 local playerSprite = nil
-local coinSprite = nil
-local floorSprite = nil
 
--- Collision Groups
-local objectsCollisionGroup = 2
+local floorSprite = nil
 
 -- Game Timer
 local playTimer = nil
@@ -25,15 +24,11 @@ local playTime = 30 * 1000
 local score = 0
 local scorePerCoin = 10
 
+local coin = Coin()
+
 -- Game Reset Functions
 local function resetTimer()
     playTimer = playdate.timer.new(playTime, playTime, 0, playdate.easingFunctions.linear)
-end
-
-local function moveCoin()
-    local randX = math.random(40, 360)
-    local randY = math.random(40, 160)
-    coinSprite:moveTo(randX, randY)
 end
 
 -- Game initialization method
@@ -47,7 +42,7 @@ local function initialize()
     playerSprite:moveTo(200, 120)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
     playerSprite.collisionResponse = function(_, other)
-        if other == coinSprite then
+        if other == coin.sprite then
             return gfx.sprite.kCollisionTypeOverlap
         end
         return gfx.sprite.kCollisionTypeFreeze
@@ -55,12 +50,7 @@ local function initialize()
     playerSprite:add()
 
     -- Create coin sprite
-    local coinImage = gfx.image.new("images/coin")
-    coinSprite = gfx.sprite.new(coinImage)
-    coinSprite:setCollideRect(0, 0, coinSprite:getSize())
-    coinSprite:add()
-    moveCoin()
-
+    coin:create()
 
     -- Create floor sprite
     local floorImage = gfx.image.new(400, 20)
@@ -106,7 +96,7 @@ function playdate.update()
         -- Allow game reset (Press A)
         if playdate.buttonIsPressed(playdate.kButtonA) then
             resetTimer()
-            moveCoin()
+            coin:move()
             score = 0
         end
 
@@ -115,14 +105,10 @@ function playdate.update()
 
 
     -- Check if player is touching coin
-    local collisions = playerSprite:overlappingSprites()
-    for _, v in ipairs(collisions) do
-        if v == coinSprite then
-            moveCoin()
-            score += scorePerCoin
-        end
+    if coin:getIsTouching(playerSprite) then
+        coin:move()
+        score += scorePerCoin
     end
-
 
     -- Key press detection for player movement
     hasJumped = playdate.buttonIsPressed(playdate.kButtonA)
